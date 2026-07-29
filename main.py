@@ -105,6 +105,7 @@ class Hexagon:
             b = screen_points[i]
 
             pygame.draw.line(screen, self.color, a.val, b.val, 3)
+        pygame.draw.line(screen, self.color, screen_points[0].val, screen_points[-1].val, 3)
         ...
         # yes
 
@@ -117,29 +118,56 @@ def n(p: Point):
     return p + Point(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
 
 
-def nested_hexagon(levels=2):
+def nested_hexagon(grid_x=5, grid_y=15):
     size = 25
-    base = Point(size, 0)
-    centers = [base]
-    for x in range(levels):
-        centers.append(
-            base.scale(math.sqrt(3))
+    positions = []
+    # origin = n(Point(0, 0))
+    origin = Point(0, 0)
+
+    for x in range(1, grid_x + 1):
+        for y in range(1, grid_y + 1):
+            # yesh
+            base_x = origin.x
+            base_y = origin.y
+
+            _x = 3 * size * x + (size * 3/2 * (y % 2 == 0)) + base_x
+            _y = math.sin(2*PI/6)  * 1* size * y + base_y
+            positions.append(Point(_x, _y))
+
+    hexes = []
+    for pos in positions:
+        hexes.append(
+            Hexagon(pos, size)
         )
 
+    print(f"hexes: {len(hexes)}")
+    return hexes
 
 
 
-hex1 = Hexagon(n(Point(0,0)), 25, GREEN)
-hex1.rotate(2*PI/12)
 
-hex1.scale(math.sqrt(3))
-screen_points = [p.translate(hex1.pos) for p in hex1.offsets]
-hexes = []
-for x in screen_points:
-    hexes.append(
-        Hexagon(x, hex1.size, RED)
-    )
+
+
+
+
+
+
+# hex1 = Hexagon(n(Point(0,0)), 25, GREEN)
+# hex1.rotate(2*PI/12)
+#
+# hex1.scale(math.sqrt(3))
+# screen_points = [p.translate(hex1.pos) for p in hex1.offsets]
+# hexes = []
+# for x in screen_points:
+#     hexes.append(
+#         Hexagon(x, hex1.size, RED)
+#     )
+
+_hex_grid = nested_hexagon(5, 15)
     
+
+
+
 
 
 
@@ -163,9 +191,13 @@ while running:
 
     screen.fill(BG_COLOR)
     # pygame.draw.line(screen, RED, (SCREEN_WIDTH/2,SCREEN_HEIGHT/2), (5, 5), 4)
-    hex1.draw(screen)
-    for hex in hexes:
-        hex.draw(screen)
+    # hex1.draw(screen)
+
+    # for h in hexes:
+    #     h.draw(screen)
+
+    for h in _hex_grid:
+        h.draw(screen)
 
 
 
