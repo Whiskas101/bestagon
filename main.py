@@ -11,6 +11,7 @@ FPS = 60
 PI = math.pi
 BG_COLOR = (30, 30, 30)
 RED = (255, 30, 30)
+GREEN = (30, 255, 30)
 
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -57,9 +58,10 @@ class Point:
 
 
 class Hexagon:
-    def __init__(self, pos: Point, size):
+    def __init__(self, pos: Point, size, color=RED):
         self.pos = pos
         self.size = size
+        self.color = color
 
         # offsets
         base_point = Point(size, 0)
@@ -83,22 +85,26 @@ class Hexagon:
         #     print(s)
 
 
-        self.offsets = [p.translate(self.pos) for p in self.offsets]
 
 
+    def rotate(self, radian):
+        self.offsets = [s.rotate(radian) for s in self.offsets]
+        
+    def scale(self, scale):
+        self.offsets = [s.scale(scale) for s in self.offsets]
     
 
     def draw(self, screen):
         # pygame.draw.line(screen, RED, self.pos.val, (self.pos+Point(50, 50)).val, 3)
         # return
 
-        for i in range(1, len(self.offsets)):
-            a = self.offsets[i-1]
-            b = self.offsets[i]
+        screen_points = [p.translate(self.pos) for p in self.offsets]
 
-            pygame.draw.line(screen, RED, a.val, b.val, 3)
+        for i in range(1, len(screen_points)):
+            a = screen_points[i-1]
+            b = screen_points[i]
 
-
+            pygame.draw.line(screen, self.color, a.val, b.val, 3)
         ...
         # yes
 
@@ -111,8 +117,34 @@ def n(p: Point):
     return p + Point(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
 
 
-hex1 = Hexagon(n(Point(0,0)), 25)
+def nested_hexagon(levels=2):
+    size = 25
+    base = Point(size, 0)
+    centers = [base]
+    for x in range(levels):
+        centers.append(
+            base.scale(math.sqrt(3))
+        )
 
+
+
+
+hex1 = Hexagon(n(Point(0,0)), 25, GREEN)
+hex1.rotate(2*PI/12)
+
+hex1.scale(math.sqrt(3))
+screen_points = [p.translate(hex1.pos) for p in hex1.offsets]
+hexes = []
+for x in screen_points:
+    hexes.append(
+        Hexagon(x, hex1.size, RED)
+    )
+    
+
+
+
+
+time = 0
 while running:
  
     for event in pygame.event.get():
@@ -127,9 +159,14 @@ while running:
 
  
 
+    time +=1 
+
     screen.fill(BG_COLOR)
     # pygame.draw.line(screen, RED, (SCREEN_WIDTH/2,SCREEN_HEIGHT/2), (5, 5), 4)
     hex1.draw(screen)
+    for hex in hexes:
+        hex.draw(screen)
+
 
 
  
