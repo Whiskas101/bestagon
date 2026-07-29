@@ -86,7 +86,6 @@ class Hexagon:
 
 
 
-
     def rotate(self, radian):
         self.offsets = [s.rotate(radian) for s in self.offsets]
         
@@ -142,6 +141,78 @@ def nested_hexagon(grid_x=5, grid_y=15):
 
     print(f"hexes: {len(hexes)}")
     return hexes
+
+
+
+
+
+# graph stuff
+# the goal is to represent each hexagon as a node, with a maximal of 
+# six neighbours
+# then, to render it as needed
+
+# using implicit encoding, counter clockwise
+# 1: topright
+# 2: top
+# 3: topleft
+# 4: bottomleft
+# 5: bottom
+# 6: bottomright
+
+
+class Graph:
+    def __init__(self):
+        self.data = {
+            (0,0): set([])
+        }
+
+    def add_node(point: Point):
+        if self.data.get(point) != None:
+            raise Exception(f"Invalid insertion, {point} already exists")
+        self.data[point] = set([])
+        
+    def check_distance(node: Point, n):
+        raise Exception("to be implemented")
+        ...
+
+    def add_neighbour(node: Point, n):
+        if n < 1 or n > 6:
+            raise Exception("Invalid neighbour")
+
+        neighbour_node = self._neighbour_position()
+        if not neighbour_node:
+            raise Exception("Neighbour does not exist in graph, add it first")
+
+
+        self.check_distance(node, n)
+
+        if n == 1:
+            # topright
+            ...
+        if n == 2:
+            # top
+            ...
+        if n == 3:
+            #topleft
+            ...
+        if n == 4:
+            #bottomleft
+            ...
+        if n == 5:
+            #bottom
+            ...
+        if n == 6:
+            #bottomright
+            ...
+
+
+
+
+        
+
+graph = {
+    Point(0,0): set([1,2,3,4,5,6]),
+}
 
 
 
