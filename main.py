@@ -25,6 +25,14 @@ class Point:
         self.x = x
         self.y = y
     
+
+    def __hash__(self): return hash(self.val)
+
+    def __eq__(self, other):
+        if isinstance(other, Point):
+            return self.x == other.x and self.y == other.y
+        raise Exception(f"{other} is not a Point type")
+
     @property
     def val(self):
         return (self.x, self.y)
@@ -93,20 +101,36 @@ class Hexagon:
         self.offsets = [s.scale(scale) for s in self.offsets]
     
 
-    def draw(self, screen):
+    def draw(self, screen, transform_func=None):
         # pygame.draw.line(screen, RED, self.pos.val, (self.pos+Point(50, 50)).val, 3)
         # return
+        if transform_func is None:
+            transform_func = lambda x : x
 
-        screen_points = [p.translate(self.pos) for p in self.offsets]
+        screen_points = [
+            transform_func(
+                p.translate(
+                    self.pos
+                )
+            )
+            for p in self.offsets
+        ]
+
 
         for i in range(1, len(screen_points)):
             a = screen_points[i-1]
             b = screen_points[i]
 
             pygame.draw.line(screen, self.color, a.val, b.val, 3)
-        pygame.draw.line(screen, self.color, screen_points[0].val, screen_points[-1].val, 3)
-        ...
-        # yes
+        
+        # the last line
+        pygame.draw.line(
+            screen,
+            self.color,
+            screen_points[0].val,
+            screen_points[-1].val,
+            3
+        )
 
 
 
@@ -114,7 +138,10 @@ running = True
 
 
 def n(p: Point):
-    return p + Point(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
+    if p:
+        return p + Point(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
+    else:
+        raise Exception(f"{p} is not a Point type")
 
 
 def nested_hexagon(grid_x=5, grid_y=15):
@@ -163,56 +190,100 @@ def nested_hexagon(grid_x=5, grid_y=15):
 class Graph:
     def __init__(self):
         self.data = {
-            (0,0): set([])
+            Point(0,0): set([])
         }
 
     def add_node(point: Point):
         if self.data.get(point) != None:
             raise Exception(f"Invalid insertion, {point} already exists")
-        self.data[point] = set([])
+        self.data[point.val] = set([])
         
     def check_distance(node: Point, n):
         raise Exception("to be implemented")
         ...
 
-    def add_neighbour(node: Point, n):
+    @staticmethod
+    def mirror(n):
+        # to get the mirror of the currentpoint
+        # so I can mark both the bestagons as bidrectionally
+        # linked
+        # 1, 4   0, 3
+        # 2, 5   1, 4
+        # 3, 6 ->2, 5  (simple +3 modulus 6)
+        # 4, 1   3, 0
+        # 5, 2   4, 1
+        # 6, 3   5, 2
+
+
+        return (((n-1)+3) % 6) + 1 # +1 to bring back to 1-6 range
+
+    def get_neighbour(self, node: Point):
+
+    def add_neighbour(self, node: Point, n):
         if n < 1 or n > 6:
             raise Exception("Invalid neighbour")
 
-        neighbour_node = self._neighbour_position()
-        if not neighbour_node:
-            raise Exception("Neighbour does not exist in graph, add it first")
+        base_hex = Hexagon(Point(0,0), size=25)
+        hypotenuse_length = math.sqrt(3)# approximation
+        rotation = 2 * PI / 12
 
+        base_hex.scale(hypotenuse_length)
+        base_hex.rotate(rotation)
 
-        self.check_distance(node, n)
-
-        if n == 1:
-            # topright
-            ...
-        if n == 2:
-            # top
-            ...
-        if n == 3:
-            #topleft
-            ...
-        if n == 4:
-            #bottomleft
-            ...
-        if n == 5:
-            #bottom
-            ...
-        if n == 6:
-            #bottomright
-            ...
+        # rotated_pos = base_hex.pos.translate(node)
+        # counteracting the rotation, so 1 refers to the encoding
+        # specified above
+        rotated_pos = base_hex.offsets[((n-1) - 3) % 6]
+        # rotated_pos = base_hex.offsets[1]
+        # rotated_pos = base_hex.offsets[2]
+        # rotated_pos = base_hex.offsets[3]
+        # rotated_pos = base_hex.offsets[4]
+        # rotated_pos = base_hex.offsets[5]
 
 
 
 
+
+
+        print("Cur node: ", node)
+        # add it to the current node's neighbour list
+        self.data[node].add(n)
+        # print(self.data)
+        if self.data.get(rotated_pos):
+            self.data[rotated_pos].add(self.mirror(n))
+        else:
+            self.data[rotated_pos] = set([self.mirror(n)])
         
 
-graph = {
-    Point(0,0): set([1,2,3,4,5,6]),
-}
+
+
+
+
+
+
+
+graph = Graph()
+start = Point(0,0)
+
+
+graph.add_neighbour(start, 1)
+graph.add_neighbour(start, 2)
+# graph.add_neighbour(start, 3)
+# graph.add_neighbour(start, 4)
+# graph.add_neighbour(start, 5)
+# graph.add_neighbour(start, 6)
+
+second = graph.data.get(start)
+# graph.
+
+
+
+
+
+
+
+hexes = [Hexagon(point, size=25) for point in graph.data]
+
 
 
 
@@ -234,8 +305,6 @@ graph = {
 #         Hexagon(x, hex1.size, RED)
 #     )
 
-_hex_grid = nested_hexagon(5, 15)
-    
 
 
 
@@ -245,7 +314,7 @@ _hex_grid = nested_hexagon(5, 15)
 
 time = 0
 while running:
- 
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -253,27 +322,28 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
 
- 
- 
 
- 
+
+
+
 
     time +=1 
 
+    
     screen.fill(BG_COLOR)
-    # pygame.draw.line(screen, RED, (SCREEN_WIDTH/2,SCREEN_HEIGHT/2), (5, 5), 4)
-    # hex1.draw(screen)
+        
+    # hex_b.draw(screen)
+    for hex in hexes:
+        hex.draw(screen, n)
 
-    # for h in hexes:
+
+    # for h in _hex_grid:
     #     h.draw(screen)
 
-    for h in _hex_grid:
-        h.draw(screen)
 
 
 
- 
- 
+
 
     pygame.display.flip() 
     clock.tick(FPS)      
