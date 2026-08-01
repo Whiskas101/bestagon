@@ -12,6 +12,8 @@ PI = math.pi
 BG_COLOR = (30, 30, 30)
 RED = (255, 30, 30)
 GREEN = (30, 255, 30)
+BLUE = (30, 40, 255)
+
 
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -66,9 +68,10 @@ class Point:
 
 
 class Hexagon:
-    def __init__(self, pos: Point, size, color=RED):
+    def __init__(self, pos: Point, size, omit=(),color=RED):
         self.pos = pos
         self.size = size
+        self.omit = omit
         self.color = color
 
         # offsets
@@ -117,13 +120,19 @@ class Hexagon:
         ]
 
 
+        pygame.draw.circle(screen, BLUE, screen_points[0].val, radius=8, width=2)
+        pygame.draw.circle(screen, BLUE, screen_points[1].val, radius=12, width=2)
         for i in range(1, len(screen_points)):
+            if (((i-1)-3) % 6)+1 in self.omit:
+                continue
             a = screen_points[i-1]
             b = screen_points[i]
 
             pygame.draw.line(screen, self.color, a.val, b.val, 3)
 
         # the last line
+        if (((6-1)-3)%6)+1 in self.omit:
+            return
         pygame.draw.line(
             screen,
             self.color,
@@ -248,6 +257,10 @@ class Graph:
             raise Exception(f"{node} does not have {n} as a neighbour")
         return neighbour_pos
 
+    def get_neighbour_connections(self, node):
+        return self.data.get(node)
+
+
 
 
 
@@ -290,13 +303,17 @@ start = Point(200,0)
 
 graph.add_neighbour(start, 1)
 graph.add_neighbour(start, 2)
+# graph.add_neighbour(start, 3)
+
 two = graph.get_neighbour(start, 2)
 graph.add_neighbour(two, 2)
 three = graph.get_neighbour(two, 2)
 graph.add_neighbour(three, 2)
 graph.add_neighbour(three, 3)
 graph.add_neighbour(three, 4)
-graph.add_neighbour(three, 5)
+
+# THIS ONE IS BROKEN, probably a floating point math issue
+# graph.add_neighbour(three, 5)
 
 
 
@@ -319,7 +336,22 @@ print(graph)
 
 
 
-hexes = [Hexagon(point, size=25) for point in graph.data]
+
+# make it so that the hexagon does NOT draw the parts where
+# it is connected.
+
+
+hexes = [
+    Hexagon(
+        point, 
+        size=25, 
+        omit=graph.get_neighbour_connections(point) 
+
+    ) for point in graph.data
+]
+
+
+
 
 
 
