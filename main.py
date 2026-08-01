@@ -227,14 +227,9 @@ class Graph:
 
         return res
 
-    def add_node(point: Point):
-        if self.data.get(point) != None:
-            raise Exception(f"Invalid insertion, {point} already exists")
-        self.data[point.val] = set([])
-        
-    def check_distance(node: Point, n):
-        raise Exception("to be implemented")
-        ...
+
+
+
 
     @staticmethod
     def mirror(n):
@@ -412,6 +407,7 @@ for point in graph.data:
 #     hexes.append(
 #         Hexagon(x, hex1.size, RED)
 #     )
+
 
 
 
