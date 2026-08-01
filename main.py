@@ -9,7 +9,7 @@ pygame.init()
 
 SCREEN_WIDTH = 1600
 SCREEN_HEIGHT = 1200
-FPS = 60
+FPS = 15
 
 PI = math.pi
 BG_COLOR = (255, 255, 255)
@@ -475,7 +475,7 @@ def generate_random_hexagon_maze(n: int):
 
 
 
-G = Graph(hex_size=15)
+G = Graph(hex_size=20)
 
 node = Point(0,0)
 nodes = [node]
@@ -492,16 +492,15 @@ while running:
                 running = False
 
 
+    screen.fill(BG_COLOR)
+
 
 
 
 
     time +=1 
 
-    # G = generate_random_hexagon_maze(time)
-
-
-    bias_factor = 5
+    bias_factor = random.randint(1,4)
     _n = random.randint(1,6)
     for x in range(bias_factor):
         G.add_neighbour(node, _n)
@@ -516,12 +515,13 @@ while running:
     hexes = G.get_hexagons()
     print("TIME:", time)
 
-    
-    screen.fill(BG_COLOR)
-        
-    # hex_b.draw(screen)
+    pygame.draw.circle(screen, BLUE, n(node).val, radius=12, width=2)
+
     for hex in hexes:
         hex.draw(screen, n)
+
+
+    
 
 
     # for h in _hex_grid:
