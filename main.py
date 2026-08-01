@@ -122,7 +122,7 @@ class Hexagon:
             b = screen_points[i]
 
             pygame.draw.line(screen, self.color, a.val, b.val, 3)
-        
+
         # the last line
         pygame.draw.line(
             screen,
@@ -189,9 +189,14 @@ def nested_hexagon(grid_x=5, grid_y=15):
 
 class Graph:
     def __init__(self):
-        self.data = {
-            Point(0,0): set([])
-        }
+        self.data = {}
+
+    def __repr__(self):
+        res = "Graph:\n"
+        for (x, y) in self.data.items():
+            res += f"\t{x}: {y}\n"
+
+        return res
 
     def add_node(point: Point):
         if self.data.get(point) != None:
@@ -214,10 +219,38 @@ class Graph:
         # 5, 2   4, 1
         # 6, 3   5, 2
 
-
         return (((n-1)+3) % 6) + 1 # +1 to bring back to 1-6 range
 
-    def get_neighbour(self, node: Point):
+    def get_neighbour_offset(self, n) -> Point:
+        base_hex = Hexagon(Point(0,0), size=25)
+        hypotenuse_length = math.sqrt(3)# approximation
+        rotation = 2 * PI / 12
+
+        base_hex.scale(hypotenuse_length)
+        base_hex.rotate(rotation)
+
+        # rotated_pos = base_hex.pos.translate(node)
+        # counteracting the rotation, so 1 refers to the encoding
+        # specified above
+        rotated_pos_offset = base_hex.offsets[((n-1) - 3) % 6]
+        # rotated_pos = base_hex.offsets[1]
+        # rotated_pos = base_hex.offsets[2]
+        # rotated_pos = base_hex.offsets[3]
+        # rotated_pos = base_hex.offsets[4]
+        # rotated_pos = base_hex.offsets[5]
+
+        return rotated_pos_offset
+
+    def get_neighbour(self, node: Point, n, add=False) -> Point:
+        neighbour_offset = self.get_neighbour_offset(n)
+        neighbour_pos = neighbour_offset.translate(node)
+        if not add and neighbour_pos not in self.data.keys():
+            raise Exception(f"{node} does not have {n} as a neighbour")
+        return neighbour_pos
+
+
+
+
 
     def add_neighbour(self, node: Point, n):
         if n < 1 or n > 6:
@@ -230,30 +263,19 @@ class Graph:
         base_hex.scale(hypotenuse_length)
         base_hex.rotate(rotation)
 
-        # rotated_pos = base_hex.pos.translate(node)
-        # counteracting the rotation, so 1 refers to the encoding
-        # specified above
-        rotated_pos = base_hex.offsets[((n-1) - 3) % 6]
-        # rotated_pos = base_hex.offsets[1]
-        # rotated_pos = base_hex.offsets[2]
-        # rotated_pos = base_hex.offsets[3]
-        # rotated_pos = base_hex.offsets[4]
-        # rotated_pos = base_hex.offsets[5]
+        # add just signifies the intent: "gimme the damn point im gonna add itto the damn graph"
+        neighbour_pos = self.get_neighbour(node, n, add=True) 
 
-
-
-
-
-
-        print("Cur node: ", node)
         # add it to the current node's neighbour list
-        self.data[node].add(n)
-        # print(self.data)
-        if self.data.get(rotated_pos):
-            self.data[rotated_pos].add(self.mirror(n))
+        if self.data.get(node):
+            self.data[node].add(n)
         else:
-            self.data[rotated_pos] = set([self.mirror(n)])
-        
+            self.data[node] = set([n])
+
+        if self.data.get(neighbour_pos):
+            self.data[neighbour_pos].add(self.mirror(n))
+        else:
+            self.data[neighbour_pos] = set([self.mirror(n)])
 
 
 
@@ -263,18 +285,33 @@ class Graph:
 
 
 graph = Graph()
-start = Point(0,0)
+start = Point(200,0)
 
 
 graph.add_neighbour(start, 1)
 graph.add_neighbour(start, 2)
+two = graph.get_neighbour(start, 2)
+graph.add_neighbour(two, 2)
+three = graph.get_neighbour(two, 2)
+graph.add_neighbour(three, 2)
+graph.add_neighbour(three, 3)
+graph.add_neighbour(three, 4)
+graph.add_neighbour(three, 5)
+
+
+
+
+
+
 # graph.add_neighbour(start, 3)
 # graph.add_neighbour(start, 4)
 # graph.add_neighbour(start, 5)
 # graph.add_neighbour(start, 6)
 
-second = graph.data.get(start)
+# second = graph.data.get(start)
 # graph.
+
+print(graph)
 
 
 
