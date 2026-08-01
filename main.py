@@ -26,18 +26,32 @@ class Point:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-    
 
-    def __hash__(self): return hash(self.val)
+
+    def __hash__(self): 
+        # this is critical to avoid floating point errors
+        # other wise it will create hexagons infinitely close, but not quite
+        # at the same positions. Ruining a lifetime debugging.
+        return hash(
+            self.ival
+        )
 
     def __eq__(self, other):
         if isinstance(other, Point):
-            return self.x == other.x and self.y == other.y
+            x, y = self.ival
+            _x, _y = other.ival
+            return _x == x and _y == y
         raise Exception(f"{other} is not a Point type")
 
     @property
     def val(self):
         return (self.x, self.y)
+
+    @property
+    def ival(self):
+        # for adding or removing items within the map 
+        # without accumulating floating point math error
+        return (round(self.x), round(self.y))
 
     def __add__(self, other):
         if isinstance(other, Point):
@@ -46,10 +60,16 @@ class Point:
 
 
     def translate(self, p: Point):
+        if not isinstance(p, Point):
+            raise Exception("p must be a Point")
+
+
         return self + p
 
     def __repr__(self):
-        return f"Point({self.x}, {self.y})"
+        # return f"Point({self.x}, {self.y})"
+        return f"Point({self.ival})"
+
 
     def rotate(self, radians):
         _x = self.x*math.cos(radians) - self.y*math.sin(radians)
@@ -147,10 +167,10 @@ running = True
 
 
 def n(p: Point):
-    if p:
-        return p + Point(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
-    else:
+    if not isinstance(p, Point):
         raise Exception(f"{p} is not a Point type")
+
+    return p + Point(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
 
 
 def nested_hexagon(grid_x=5, grid_y=15):
@@ -202,8 +222,8 @@ class Graph:
 
     def __repr__(self):
         res = "Graph:\n"
-        for (x, y) in self.data.items():
-            res += f"\t{x}: {y}\n"
+        for idx, point in enumerate(self.data.items()):
+            res += f"-{idx+1}-\t" + point.__repr__() + "\n"
 
         return res
 
@@ -258,6 +278,7 @@ class Graph:
         return neighbour_pos
 
     def get_neighbour_connections(self, node):
+
         return self.data.get(node)
 
 
@@ -268,13 +289,6 @@ class Graph:
     def add_neighbour(self, node: Point, n):
         if n < 1 or n > 6:
             raise Exception("Invalid neighbour")
-
-        base_hex = Hexagon(Point(0,0), size=25)
-        hypotenuse_length = math.sqrt(3)# approximation
-        rotation = 2 * PI / 12
-
-        base_hex.scale(hypotenuse_length)
-        base_hex.rotate(rotation)
 
         # add just signifies the intent: "gimme the damn point im gonna add itto the damn graph"
         neighbour_pos = self.get_neighbour(node, n, add=True) 
@@ -298,19 +312,38 @@ class Graph:
 
 
 graph = Graph()
-start = Point(200,0)
-
+start = Point(0,0)
 
 graph.add_neighbour(start, 1)
 graph.add_neighbour(start, 2)
 # graph.add_neighbour(start, 3)
 
 two = graph.get_neighbour(start, 2)
+print("Two", two)
 graph.add_neighbour(two, 2)
+
+graph.add_neighbour(two, 5)
+graph.add_neighbour(two, 6)
+
 three = graph.get_neighbour(two, 2)
 graph.add_neighbour(three, 2)
-graph.add_neighbour(three, 3)
-graph.add_neighbour(three, 4)
+
+four = graph.get_neighbour(three, 2)
+graph.add_neighbour(four, 2)
+
+five = graph.get_neighbour(four, 2)
+graph.add_neighbour(five, 2)
+
+six = graph.get_neighbour(four, 2)
+graph.add_neighbour(six, 6)
+
+seven = graph.get_neighbour(six, 6)
+graph.add_neighbour(seven, 6)
+
+eight = graph.get_neighbour(seven, 6)
+graph.add_neighbour(seven, 5)
+
+
 
 # THIS ONE IS BROKEN, probably a floating point math issue
 # graph.add_neighbour(three, 5)
@@ -341,14 +374,20 @@ print(graph)
 # it is connected.
 
 
-hexes = [
-    Hexagon(
-        point, 
-        size=25, 
-        omit=graph.get_neighbour_connections(point) 
 
-    ) for point in graph.data
-]
+hexes = []
+for point in graph.data:
+    if not isinstance(point, Point):
+        raise Exception("what are you doing")
+    
+    hexes.append(
+        Hexagon(
+            point, 
+            size=25, 
+            omit=graph.get_neighbour_connections(point),
+            # color = (int(point.x) % 256, int(point.y) % 256, 250)
+        )
+    )
 
 
 
