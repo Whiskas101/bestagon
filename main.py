@@ -43,6 +43,14 @@ class Point:
             return _x == x and _y == y
         raise Exception(f"{other} is not a Point type")
 
+    def dist(self, p: Point):
+        if not isinstance(p, Point):
+            raise Exception(f"{p} should be a point")
+        return math.sqrt(
+            (self.x - p.x)**2 + (self.y - p.y)**2
+        )
+
+
     @property
     def val(self):
         return (self.x, self.y)
@@ -228,6 +236,33 @@ class Graph:
         return res
 
 
+    def floating_point_precision_check(self):
+        # a very, very basic check to see if there's
+        # two nodes that are TOO damn close to each other.
+        # O(n^2) but should be fine since my graphs are tiny
+        for p1 in self.data.keys():
+            for p2 in self.data.keys():
+                if p1 == p2:
+                    continue
+                else:
+                    if p1.dist(p2) < 1.0:
+                        raise Exception(
+                            f"""
+
+                            There's some duplicate node too close to another
+                                {p1} <> {p1}
+
+                            """
+                        )
+        print("Graph invariant is fine")
+                    
+        
+        
+
+
+
+
+
 
 
 
@@ -338,6 +373,8 @@ graph.add_neighbour(seven, 6)
 eight = graph.get_neighbour(seven, 6)
 graph.add_neighbour(seven, 5)
 
+
+graph.floating_point_precision_check()
 
 
 # THIS ONE IS BROKEN, probably a floating point math issue
