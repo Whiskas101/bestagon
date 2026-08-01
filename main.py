@@ -20,13 +20,13 @@ BLUE = (30, 40, 255)
 
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("My Pygame Window")
+pygame.display.set_caption("bestagons")
 clock = pygame.time.Clock()
 
 
 
 class Point:
-    def __init__(self, x, y, precision=6):
+    def __init__(self, x, y, precision=8):
         self.x = round(float(x), precision)
         self.y = round(float(y), precision)
 
@@ -475,7 +475,7 @@ def generate_random_hexagon_maze(n: int):
 
 
 
-G = Graph(hex_size=20)
+G = Graph(hex_size=19)
 
 node = Point(0,0)
 nodes = [node]
