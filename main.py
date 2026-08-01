@@ -480,8 +480,11 @@ G = Graph(hex_size=20)
 node = Point(0,0)
 nodes = [node]
 decisions = []
+max_iter = 3000
+i = 1
+# time.sleep(2)
 
-time = 0
+_time = 0
 while running:
 
     for event in pygame.event.get():
@@ -494,13 +497,13 @@ while running:
 
     screen.fill(BG_COLOR)
 
+    _time +=1 
 
-
-
-
-    time +=1 
-
-    bias_factor = random.randint(1,4)
+    bias_factor = random.randint(4,15)
+    
+    
+    if i > max_iter:
+        continue
     _n = random.randint(1,6)
     for x in range(bias_factor):
         G.add_neighbour(node, _n)
@@ -508,12 +511,13 @@ while running:
         cur_neighbours = G.get_neighbour_connections(node)
         choice = random.choice(list(cur_neighbours))
         node = G.get_neighbour(node, choice)
-        nodes.append(node)
 
+        i += 1
+        
 
     G.floating_point_precision_check()
     hexes = G.get_hexagons()
-    print("TIME:", time)
+    print("TIME:", _time)
 
     pygame.draw.circle(screen, BLUE, n(node).val, radius=12, width=2)
 
